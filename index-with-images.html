@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Box Points Calculator</title>
+    <meta name="description" content="Calculate your total points with redemption bonuses for Common, Rare, Epic, and Legendary boxes">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #0d1117 0%, #1a1a2e 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #c9d1d9;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: #161b22;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            margin: 20px 0;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            color: #58a6ff;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header p {
+            color: #8b949e;
+            font-size: 1rem;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #c9d1d9;
+        }
+
+        .box-inputs {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .box-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            background: #161b22;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            transition: transform 0.2s;
+        }
+
+        .box-row:hover {
+            transform: translateX(4px);
+        }
+
+        .box-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .box-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+        }
+
+        .box-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .box-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .box-details {
+            flex: 1;
+        }
+
+        .box-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+
+        .box-name.common { color: #58a6ff; }
+        .box-name.rare { color: #bc8cff; }
+        .box-name.epic { color: #f0883e; }
+        .box-name.legendary { color: #ff4444; }
+
+        .box-value {
+            font-size: 0.85rem;
+            color: #8b949e;
+        }
+
+        .box-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .control-btn {
+            width: 36px;
+            height: 36px;
+            background: #30363d;
+            border: none;
+            border-radius: 6px;
+            color: #c9d1d9;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn:hover {
+            background: #484f58;
+            transform: scale(1.05);
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+
+        .box-input {
+            width: 80px;
+            height: 40px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #c9d1d9;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .box-input:focus {
+            outline: none;
+            border-color: #58a6ff;
+            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 18px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-calculate {
+            background: #238636;
+            color: white;
+        }
+
+        .btn-calculate:hover {
+            background: #2ea043;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(35, 134, 54, 0.4);
+        }
+
+        .btn-reset {
+            background: #da3633;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #f85149;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(218, 54, 51, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .result-container {
+            background: linear-gradient(135deg, #1f6feb 0%, #58a6ff 100%);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 16px rgba(31, 111, 235, 0.3);
+        }
+
+        .result-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            animation: bounce 0.5s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .result-label {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .result-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: white;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .history-container {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .history-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #8b949e;
+        }
+
+        .history-list {
+            max-height: 120px;
+            overflow-y: auto;
+            font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #8b949e;
+        }
+
+        .history-item {
+            padding: 8px;
+            margin-bottom: 6px;
+            background: #161b22;
+            border-radius: 4px;
+            border-left: 3px solid #30363d;
+        }
+
+        .history-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .history-list::-webkit-scrollbar-track {
+            background: #161b22;
+            border-radius: 4px;
+        }
+
+        .history-list::-webkit-scrollbar-thumb {
+            background: #30363d;
+            border-radius: 4px;
+        }
+
+        .history-list::-webkit-scrollbar-thumb:hover {
+            background: #484f58;
+        }
+
+        .footer {
+            text-align: center;
+            color: #8b949e;
+            font-size: 0.85rem;
+            margin-top: 20px;
+        }
+
+        .footer a {
+            color: #58a6ff;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Ad placeholder */
+        .ad-container {
+            background: #0d1117;
+            border: 2px dashed #30363d;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            color: #484f58;
+            margin-bottom: 20px;
+            min-height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 25px;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .box-input {
+                width: 70px;
+            }
+
+            .result-value {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><span>🎁</span> Box Points Calculator</h1>
+            <p>Calculate your total points with redemption bonuses</p>
+        </div>
+
+        <!-- Top Ad Space -->
+        <div class="ad-container">
+            <!-- Add your Google AdSense code here -->
+            Advertisement Space
+        </div>
+
+        <div class="section-title">Box Quantities</div>
+        
+        <div class="box-inputs">
+            <!-- Common Box (Blue) -->
+            <div class="box-row">
+                <div class="box-info">
+                    <div class="box-icon">
+                        <!-- REPLACE WITH YOUR BLUE BOX IMAGE -->
+                        <img src="images/common-blue.png" alt="Common Box" onerror="this.parentElement.innerHTML='📦'">
+                    </div>
+                    <div class="box-details">
+                        <div class="box-name common">Common</div>
+                        <div class="box-value">2 points per box</div>
+                    </div>
+                </div>
+                <div class="box-controls">
+                    <button class="control-btn" onclick="adjustValue('common', -1)">−</button>
+                    <input type="number" id="common" class="box-input" value="0" min="0" oninput="validateInput(this)">
+                    <button class="control-btn" onclick="adjustValue('common', 1)">+</button>
+                </div>
+            </div>
+
+            <!-- Rare Box (Purple) -->
+            <div class="box-row">
+                <div class="box-info">
+                    <div class="box-icon">
+                        <!-- REPLACE WITH YOUR PURPLE BOX IMAGE -->
+                        <img src="images/rare-purple.png" alt="Rare Box" onerror="this.parentElement.innerHTML='💎'">
+                    </div>
+                    <div class="box-details">
+                        <div class="box-name rare">Rare</div>
+                        <div class="box-value">10 points per box</div>
+                    </div>
+                </div>
+                <div class="box-controls">
+                    <button class="control-btn" onclick="adjustValue('rare', -1)">−</button>
+                    <input type="number" id="rare" class="box-input" value="0" min="0" oninput="validateInput(this)">
+                    <button class="control-btn" onclick="adjustValue('rare', 1)">+</button>
+                </div>
+            </div>
+
+            <!-- Epic Box (Yellow) -->
+            <div class="box-row">
+                <div class="box-info">
+                    <div class="box-icon">
+                        <!-- REPLACE WITH YOUR YELLOW BOX IMAGE -->
+                        <img src="images/epic-yellow.png" alt="Epic Box" onerror="this.parentElement.innerHTML='⭐'">
+                    </div>
+                    <div class="box-details">
+                        <div class="box-name epic">Epic</div>
+                        <div class="box-value">20 points per box</div>
+                    </div>
+                </div>
+                <div class="box-controls">
+                    <button class="control-btn" onclick="adjustValue('epic', -1)">−</button>
+                    <input type="number" id="epic" class="box-input" value="0" min="0" oninput="validateInput(this)">
+                    <button class="control-btn" onclick="adjustValue('epic', 1)">+</button>
+                </div>
+            </div>
+
+            <!-- Legendary Box (Red) -->
+            <div class="box-row">
+                <div class="box-info">
+                    <div class="box-icon">
+                        <!-- REPLACE WITH YOUR RED BOX IMAGE -->
+                        <img src="images/legendary-red.png" alt="Legendary Box" onerror="this.parentElement.innerHTML='👑'">
+                    </div>
+                    <div class="box-details">
+                        <div class="box-name legendary">Legendary</div>
+                        <div class="box-value">50 points per box</div>
+                    </div>
+                </div>
+                <div class="box-controls">
+                    <button class="control-btn" onclick="adjustValue('legendary', -1)">−</button>
+                    <input type="number" id="legendary" class="box-input" value="0" min="0" oninput="validateInput(this)">
+                    <button class="control-btn" onclick="adjustValue('legendary', 1)">+</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button class="btn btn-calculate" onclick="calculatePoints()">Calculate Points</button>
+            <button class="btn btn-reset" onclick="resetFields()">Reset</button>
+        </div>
+
+        <div class="result-container">
+            <div class="result-icon">🏆</div>
+            <div class="result-label">Total Points</div>
+            <div class="result-value" id="result">0</div>
+        </div>
+
+        <div class="history-container">
+            <div class="history-title">Recent Calculations</div>
+            <div class="history-list" id="history">
+                <div style="text-align: center; padding: 20px; color: #484f58;">
+                    No calculations yet
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Ad Space -->
+        <div class="ad-container">
+            <!-- Add your Google AdSense code here -->
+            Advertisement Space
+        </div>
+
+        <div class="footer">
+            Created by UnknownBandit
+        </div>
+    </div>
+
+    <script>
+        // Box values configuration
+        const boxPointValues = {
+            common: 2,
+            rare: 10,
+            epic: 20,
+            legendary: 50
+        };
+
+        const boxTypeSequence = ['common', 'rare', 'epic', 'legendary'];
+        const unlockCostThresholds = [40, 30, 30, 30];
+
+        // Adjust value with +/- buttons
+        function adjustValue(boxType, delta) {
+            const input = document.getElementById(boxType);
+            const currentValue = parseInt(input.value) || 0;
+            const newValue = Math.max(0, currentValue + delta);
+            input.value = newValue;
+        }
+
+        // Validate input
+        function validateInput(input) {
+            if (input.value < 0) input.value = 0;
+            if (input.value === '') input.value = 0;
+        }
+
+        // Calculate total points
+        function calculatePoints() {
+            try {
+                // Get input values
+                const userBoxCounts = {
+                    common: parseInt(document.getElementById('common').value) || 0,
+                    rare: parseInt(document.getElementById('rare').value) || 0,
+                    epic: parseInt(document.getElementById('epic').value) || 0,
+                    legendary: parseInt(document.getElementById('legendary').value) || 0
+                };
+
+                // Calculate initial points pool
+                let totalPointsAccumulated = 0;
+                for (const boxType in boxPointValues) {
+                    totalPointsAccumulated += boxPointValues[boxType] * userBoxCounts[boxType];
+                }
+
+                let availablePoints = totalPointsAccumulated;
+                let currentUnlockIndex = 0;
+
+                // Redemption loop - using >= for correct calculation
+                while (availablePoints >= unlockCostThresholds[currentUnlockIndex]) {
+                    availablePoints -= unlockCostThresholds[currentUnlockIndex];
+                    const unlockedBoxType = boxTypeSequence[currentUnlockIndex];
+                    currentUnlockIndex = (currentUnlockIndex + 1) % 4;
+                    
+                    totalPointsAccumulated += boxPointValues[unlockedBoxType];
+                    availablePoints += boxPointValues[unlockedBoxType];
+                }
+
+                // Update result with animation
+                const resultElement = document.getElementById('result');
+                resultElement.style.transform = 'scale(1.1)';
+                setTimeout(() => {
+                    resultElement.style.transform = 'scale(1)';
+                }, 200);
+                
+                resultElement.textContent = totalPointsAccumulated.toLocaleString();
+
+                // Add to history
+                addToHistory(userBoxCounts, totalPointsAccumulated);
+
+            } catch (error) {
+                document.getElementById('result').textContent = 'Error!';
+            }
+        }
+
+        // Reset all fields
+        function resetFields() {
+            document.getElementById('common').value = 0;
+            document.getElementById('rare').value = 0;
+            document.getElementById('epic').value = 0;
+            document.getElementById('legendary').value = 0;
+            document.getElementById('result').textContent = '0';
+        }
+
+        // Add calculation to history
+        function addToHistory(quantities, result) {
+            const historyList = document.getElementById('history');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            const boxes = [];
+            for (const [type, count] of Object.entries(quantities)) {
+                if (count > 0) {
+                    boxes.push(`${count} ${type}`);
+                }
+            }
+            
+            const boxText = boxes.length > 0 ? boxes.join(', ') : 'No boxes';
+            const historyItem = document.createElement('div');
+            historyItem.className = 'history-item';
+            historyItem.textContent = `[${timestamp}] ${boxText} → ${result.toLocaleString()} points`;
+            
+            // Remove placeholder if it exists
+            if (historyList.firstChild && historyList.firstChild.style) {
+                historyList.innerHTML = '';
+            }
+            
+            historyList.insertBefore(historyItem, historyList.firstChild);
+            
+            // Keep only last 5 entries
+            while (historyList.children.length > 5) {
+                historyList.removeChild(historyList.lastChild);
+            }
+        }
+
+        // Allow Enter key to calculate
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                calculatePoints();
+            }
+        });
+
+        // Add smooth transitions
+        document.querySelectorAll('.box-input').forEach(input => {
+            input.style.transition = 'all 0.2s ease';
+        });
+    </script>
+</body>
+</html>
