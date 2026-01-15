@@ -675,20 +675,92 @@
         const boxTypeSequence = ['common', 'rare', 'epic', 'legendary'];
         const unlockCostThresholds = [40, 30, 30, 30];
 
-        function adjustValue(boxType, delta) {
-            const input = document.getElementById(boxType);
-            const currentValue = parseInt(input.value) || 0;
-            const newValue = Math.max(0, currentValue + delta);
-            input.value = newValue;
-        }
-
-        function validateInput(input) {
-            if (input.value < 0) input.value = 0;
-            if (input.value === '') input.value = 0;
-        }
-
-        // Auto-select input content when focused (clears 0)
+        // Load saved data on page load
         document.addEventListener('DOMContentLoaded', function() {
+            loadFromStorage();
+            setupInputHandlers();
+        });
+
+        function loadFromStorage() {
+            // Load input values
+            const savedInputs = localStorage.getItem('boxInputValues');
+            if (savedInputs) {
+                try {
+                    const inputs = JSON.parse(savedInputs);
+                    for (const [key, value] of Object.entries(inputs)) {
+                        const input = document.getElementById(key);
+                        if (input) {
+                            input.value = value;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error loading saved inputs:', e);
+                }
+            }
+
+            // Load history
+            const savedHistory = localStorage.getItem('calculationHistory');
+            if (savedHistory) {
+                try {
+                    const history = JSON.parse(savedHistory);
+                    const historyList = document.getElementById('history');
+                    const emptyState = historyList.querySelector('.history-empty');
+                    
+                    if (history.length > 0) {
+                        if (emptyState) {
+                            historyList.innerHTML = '';
+                        }
+                        
+                        history.forEach(item => {
+                            const historyItem = document.createElement('div');
+                            historyItem.className = 'history-item';
+                            historyItem.innerHTML = `
+                                <span class="history-details">${item.details}</span>
+                                <span class="history-result">${item.result}</span>
+                                <span class="history-time">${item.time}</span>
+                            `;
+                            historyList.appendChild(historyItem);
+                        });
+                        
+                        document.getElementById('clearBtn').style.display = 'block';
+                    }
+                } catch (e) {
+                    console.error('Error loading history:', e);
+                }
+            }
+
+            // Load last result
+            const savedResult = localStorage.getItem('lastResult');
+            if (savedResult) {
+                document.getElementById('result').textContent = savedResult;
+            }
+        }
+
+        function saveToStorage() {
+            // Save input values
+            const inputs = {
+                common: document.getElementById('common').value,
+                rare: document.getElementById('rare').value,
+                epic: document.getElementById('epic').value,
+                legendary: document.getElementById('legendary').value
+            };
+            localStorage.setItem('boxInputValues', JSON.stringify(inputs));
+
+            // Save history
+            const historyItems = document.querySelectorAll('.history-item');
+            const history = Array.from(historyItems).map(item => ({
+                details: item.querySelector('.history-details').textContent,
+                result: item.querySelector('.history-result').textContent,
+                time: item.querySelector('.history-time').textContent
+            }));
+            localStorage.setItem('calculationHistory', JSON.stringify(history));
+
+            // Save last result
+            const result = document.getElementById('result').textContent;
+            localStorage.setItem('lastResult', result);
+        }
+
+        function setupInputHandlers() {
             const inputs = document.querySelectorAll('.box-input');
             inputs.forEach(input => {
                 input.addEventListener('focus', function() {
@@ -699,9 +771,27 @@
                     if (this.value === '' || this.value < 0) {
                         this.value = 0;
                     }
+                    saveToStorage(); // Save when input loses focus
+                });
+
+                input.addEventListener('change', function() {
+                    saveToStorage(); // Save when value changes
                 });
             });
-        });
+        }
+
+        function adjustValue(boxType, delta) {
+            const input = document.getElementById(boxType);
+            const currentValue = parseInt(input.value) || 0;
+            const newValue = Math.max(0, currentValue + delta);
+            input.value = newValue;
+            saveToStorage(); // Save after adjustment
+        }
+
+        function validateInput(input) {
+            if (input.value < 0) input.value = 0;
+            if (input.value === '') input.value = 0;
+        }
 
         function calculatePoints() {
             try {
@@ -738,6 +828,7 @@
                 resultElement.textContent = totalPointsAccumulated.toLocaleString();
 
                 addToHistory(userBoxCounts, totalPointsAccumulated);
+                saveToStorage(); // Save after calculation
 
             } catch (error) {
                 document.getElementById('result').textContent = 'Error';
@@ -750,6 +841,7 @@
             document.getElementById('epic').value = 0;
             document.getElementById('legendary').value = 0;
             document.getElementById('result').textContent = '0';
+            saveToStorage(); // Save reset state
         }
 
         function addToHistory(quantities, result) {
@@ -795,6 +887,10 @@
             const historyList = document.getElementById('history');
             historyList.innerHTML = '<div class="history-empty">No calculations yet</div>';
             document.getElementById('clearBtn').style.display = 'none';
+            
+            // Clear from localStorage
+            localStorage.removeItem('calculationHistory');
+            saveToStorage(); // Update storage
         }
 
         document.addEventListener('keypress', function(e) {
